@@ -1,0 +1,37 @@
+pipeline{
+    
+agent any
+
+stages{
+    stage('checkout'){
+     steps{
+        git 'https://github.com/devillierscbe/hello.git'
+       }
+    }
+   stage('Build'){
+       steps{
+           cmakeBuild buildDir: './', buildType: 'Debug', cleanBuild: true, installation: 'Cmake', label: 'C++', sourceDir: './', steps: [[withCmake: true]]
+        }
+   }
+   stage('Ctest'){
+       steps{
+           sh "make test"
+       }
+   }
+    stage('Cppcheck'){
+     steps{
+     sh "cppcheck --enable=all --inconclusive --xml --xml-version=2 ./ 2> cppcheck.xml"
+       }
+    }
+    stage('Cpack'){
+        steps{
+            sh "cpack -C CPackConfig.cmake"
+        }
+    }
+    stage('Output'){
+        steps{
+            sh "cd bin && ./greet"
+        }
+    }
+ }
+}
